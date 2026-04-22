@@ -160,6 +160,7 @@ window.openDetail = async (id) => {
           <form method="dialog">
             <button class="btn btn-sm btn-circle absolute right-4 top-4 z-50">✕</button>
           </form>
+          
           <div class="flex flex-col md:flex-row">
             <img src="${poster}" class="w-full md:w-2/5 object-cover" alt="${detail.Title}" />
             <div class="p-8">
@@ -180,6 +181,10 @@ window.openDetail = async (id) => {
             </div>
           </div>
         </div>
+
+        <form method="dialog" class="modal-backdrop">
+          <button>close</button>
+        </form>
       </dialog>`;
 
     // DaisyUI modal bileşenini göster
