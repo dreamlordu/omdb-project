@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/public/film-roll.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CineView | Film Keşfet</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+
+  <body class="relative w-full min-h-screen grid-bg overflow-x-hidden">
+    <!--
+      Hata/bilgi mesajlarının enjekte edildiği kap.
+      Konumu: mobilde alta (bottom-2), masaüstünde başlığın yanına (top-2) sabitlenmiş.
+      İçeriği showAlert() tarafından doldurulur ve 3 saniye sonra otomatik temizlenir.
+    -->
+    <div class="warning absolute bottom-2 md:top-2 right-3 z-50"></div>
+
+    <!--
+      DaisyUI Drawer bileşeni — filtre paneli için kullanılıyor.
+      drawer-end: panel sağdan açılır.
+      Açma/kapama mekanizması JS değil, #filter-drawer checkbox'ı üzerinden çalışır;
+      bu sayede JavaScript olmadan da erişilebilirlik sağlanmış olur.
+    -->
+    <div class="drawer drawer-end">
+      <input id="filter-drawer" type="checkbox" class="drawer-toggle" />
+
+      <!-- ANA İÇERİK -->
+      <div class="drawer-content flex flex-col">
+        <!--
+          Başlık sabit konumlandırılmış (fixed).
+          Arama formu burada; submit olayı main.js tarafından dinleniyor.
+        -->
+        <header
+          class="fixed top-0 left-0 w-full z-40 bg-white/90 backdrop-blur-md shadow-md"
+        >
+          <div class="w-full pt-6 pb-4 flex flex-col items-center">
+            <div class="text-center">
+              <h1 class="font-extrabold text-3xl md:text-5xl">
+                Cine <span class="text-yellow-300">View</span>
+              </h1>
+              <p class="text-gray-400 text-xs md:text-sm font-light">
+                Modern Film Keşif Platformu
+              </p>
+            </div>
+
+            <div class="w-full flex justify-center items-center py-3 px-4">
+              <form class="flex flex-row items-center gap-1">
+                <!--
+                  Temizle butonu (✕) input'un içine absolute olarak yerleştirilmiş;
+                  type="button" — aksi hâlde form submit'i tetikler.
+                -->
+                <div class="relative flex items-center">
+                  <input
+                    id="search-input"
+                    type="text"
+                    placeholder="Hazırsan Başlayalım"
+                    class="input input-info input-sm md:input-md bg-white rounded-l-2xl w-48 md:w-[300px] pr-10"
+                  />
+                  <button
+                    type="button"
+                    id="clear-btn"
+                    class="btn btn-circle btn-xs absolute right-2 text-error hover:bg-error/20"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <button
+                  id="search-btn"
+                  type="submit"
+                  class="btn btn-sm md:btn-md btn-soft btn-info rounded-r-2xl"
+                >
+                  Ara
+                </button>
+
+                <!-- for="filter-drawer" → checkbox'ı toggle ederek drawer'ı açar -->
+                <label
+                  for="filter-drawer"
+                  class="btn btn-sm md:btn-md btn-neutral cursor-pointer"
+                >
+                  <img
+                    src="/src/assets/icon/filtericon.png"
+                    alt="filter-icon"
+                    class="w-5 h-5 md:w-6 md:h-6 invert"
+                  />
+                </label>
+              </form>
+            </div>
+          </div>
+        </header>
+      </div>
+      <!-- /drawer-content -->
+
+      <!--
+        Film kartlarının render edildiği ızgara.
+        Sabit başlığın yüksekliği kadar üstten boşluk bırakılmış (mt-38 / mt-46).
+        .grid ve .modalbox içerikleri tamamen JS tarafından yönetilir.
+      -->
+      <main class="mt-38 md:mt-46 w-full px-4 py-5">
+        <div
+          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6 md:gap-8 max-w-full px-4 py-5"
+        ></div>
+        <div class="modalbox"></div>
+      </main>
+
+      <!-- DRAWER YAN PANELİ -->
+      <div class="drawer-side z-50">
+        <!-- Panel dışına tıklandığında drawer'ı kapatan şeffaf overlay -->
+        <label
+          for="filter-drawer"
+          aria-label="close sidebar"
+          class="drawer-overlay"
+        ></label>
+
+        <div
+          class="menu bg-white text-base-content min-h-full w-80 p-6 flex flex-col shadow-2xl border-l border-gray-100"
+        >
+          <div class="flex justify-between items-center mb-10">
+            <h2 class="text-2xl font-black uppercase tracking-tighter">
+              FİLTRELE
+            </h2>
+            <label for="filter-drawer" class="btn btn-sm btn-circle btn-ghost"
+              >✕</label
+            >
+          </div>
+
+          <div class="flex-grow space-y-6">
+            <!-- TÜR — OMDB'nin Genre alanı virgülle ayrılmış string döndürür;
+                 filtreleme .includes() ile yapıldığından value İngilizce olmalı. -->
+            <div>
+              <label
+                class="label text-[10px] font-bold text-gray-400 uppercase tracking-widest"
+                >Tür</label
+              >
+              <select
+                id="genre-filter"
+                class="select select-bordered w-full rounded-xl bg-gray-50"
+              >
+                <option value="">Tüm Türler</option>
+                <option value="Action">Aksiyon</option>
+                <option value="Adventure">Macera</option>
+                <option value="Animation">Animasyon</option>
+                <option value="Comedy">Komedi</option>
+                <option value="Crime">Suç</option>
+                <option value="Documentary">Belgesel</option>
+                <option value="Drama">Dram</option>
+                <option value="Family">Aile</option>
+                <option value="Fantasy">Fantastik</option>
+                <option value="Horror">Korku</option>
+                <option value="Mystery">Gizem</option>
+                <option value="Romance">Romantik</option>
+                <option value="Sci-Fi">Bilim Kurgu</option>
+                <option value="Thriller">Gerilim</option>
+              </select>
+            </div>
+
+            <!-- YAYIN YILI — değer #year-value badge'ine input eventi ile yansıtılır -->
+            <div class="w-full">
+              <label class="label px-0 mb-3 flex justify-between">
+                <span
+                  class="label-text text-[10px] font-bold text-gray-400 uppercase tracking-widest"
+                  >Yayın Yılı</span
+                >
+                <span
+                  id="year-value"
+                  class="badge badge-warning font-bold p-3 rounded-lg shadow-sm"
+                  >2026</span
+                >
+              </label>
+              <input
+                type="range"
+                id="year-range"
+                min="1990"
+                max="2026"
+                value="2026"
+                step="1"
+                class="range range-warning range-sm"
+              />
+              <div
+                class="w-full flex justify-between text-[10px] px-2 mt-2 text-gray-500 font-bold uppercase"
+              >
+                <span>1990</span>
+                <span>2026</span>
+              </div>
+            </div>
+
+            <!-- MİNİMUM PUAN — değer #rating-value badge'ine input eventi ile yansıtılır -->
+            <div class="w-full">
+              <label class="label px-0 mb-3 flex justify-between">
+                <span
+                  class="label-text text-[10px] font-bold text-gray-400 uppercase tracking-widest"
+                  >Minimum Puan</span
+                >
+                <span
+                  id="rating-value"
+                  class="badge badge-info font-bold p-3 w-[60px] rounded-lg shadow-sm"
+                  >7.0</span
+                >
+              </label>
+              <input
+                type="range"
+                id="rating-range"
+                min="0"
+                max="10"
+                value="7"
+                step="0.1"
+                class="range range-info range-sm"
+              />
+              <div
+                class="w-full flex justify-between text-[10px] px-2 mt-2 text-gray-500 font-bold uppercase"
+              >
+                <span>0.0</span>
+                <span>10.0</span>
+              </div>
+            </div>
+          </div>
+          <!-- /filtre kontrolleri -->
+
+          <!-- Filtreleri uygula; click eventi main.js'te dinleniyor -->
+          <button
+            id="reset-filter"
+            class="btn btn-warning w-full font-bold uppercase rounded-xl mt-6"
+          >
+            Sonuçları Uygula
+          </button>
+        </div>
+      </div>
+      <!-- /drawer-side -->
+    </div>
+    <!-- /drawer -->
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

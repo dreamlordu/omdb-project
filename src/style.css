@@ -1,0 +1,23 @@
+/* style.css - Sitenin görsel stilini belirleyen dosya */
+
+/* Tailwind CSS kütüphanesini projeye dahil eder */
+@import "tailwindcss";
+
+/* DaisyUI hazır bileşen kütüphanesini ekler */
+@plugin "daisyui" {
+  base: false;
+}
+
+/* Sitenin o kareli (grid) arka plan desenini oluşturur */
+@utility grid-bg {
+  /* Arka planın bembeyaz olmasını sağlar */
+  background-color: #ffffff;
+
+  /* Yatay ve dikey çok ince gri çizgiler çizer */
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+
+  /* Her bir karenin boyutunu 40 piksel yapar */
+  background-size: 40px 40px;
+}
