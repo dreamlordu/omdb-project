@@ -5,7 +5,7 @@
  * veri akışını yöneten ana sinir merkezidir.
  * --------------------------------------------------
  */
-
+import "./style.css";
 import { movieSearch, getMovieDetails } from "/src/api.js";
 import { renderSkeleton, renderMovies, showAlert } from "/src/ui.js";
 import { saveLastSearch, getLastSearch } from "/src/storage.js";
